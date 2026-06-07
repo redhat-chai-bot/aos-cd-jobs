@@ -183,6 +183,7 @@ def setup_venv() {
             source ${VIRTUAL_ENV}/bin/activate
             cd art-tools
             ./install.sh
+            uv pip install pip-system-certs
             echo "Installed art-tools:"
             uv pip list | grep 'art-tools'
         """)
