@@ -45,6 +45,18 @@ node {
                         trim: true,
                     ),
                     string(
+                        name: 'DOOZER_DATA_PATH',
+                        description: 'ocp-build-data fork to use (e.g. test customizations on your own fork)',
+                        defaultValue: "https://github.com/openshift-eng/ocp-build-data",
+                        trim: true,
+                    ),
+                    string(
+                        name: 'DOOZER_DATA_GITREF',
+                        description: '(Optional) Doozer data path git [branch / tag / sha] to use',
+                        defaultValue: "",
+                        trim: true,
+                    ),
+                    string(
                         name: 'REPOSYNC_DIR',
                         description: 'The directory under reposync to write to',
                         defaultValue: "",
@@ -82,7 +94,7 @@ node {
 
     commonlib.checkMock()
 
-    currentBuild.displayName = "${GROUP} - ${ARCH}${params.DRY_RUN ? ' [DRY_RUN]' : ''}"
+    currentBuild.displayName = "${GROUP} - ${ARCH}${params.DRY_RUN ? ' [DRY_RUN]' : ''}${params.DOOZER_DATA_GITREF ? ' @' + params.DOOZER_DATA_GITREF : ''}"
     REPOSYNC_BASE_DIR="/mnt/jenkins-workspace/reposync"
     LOCAL_SYNC_DIR = "${REPOSYNC_BASE_DIR}/${REPOSYNC_DIR}"
     MIRROR_RELATIVE_REPOSYNC = "reposync/${REPOSYNC_DIR}"
@@ -108,7 +120,11 @@ node {
 
                 stage("sync repos to local") {
                     withEnv(["https_proxy="]) {
-                        base_args = "--working-dir ${DOOZER_WORKING} --group ${GROUP}"
+                        def groupParam = params.DOOZER_DATA_GITREF ? "${GROUP}@${params.DOOZER_DATA_GITREF}" : GROUP
+                        base_args = "--working-dir ${DOOZER_WORKING} --group ${groupParam}"
+                        if (params.DOOZER_DATA_PATH) {
+                            base_args += " --data-path=${params.DOOZER_DATA_PATH}"
+                        }
                         // Specify -a ${ARCH} to allow repos to be constructed for the arch even if
                         // if it is not enabled in group.yml.
                         command = "${base_args} -a ${ARCH} beta:reposync --output ${LOCAL_SYNC_DIR}/ --cachedir ${LOCAL_CACHE_DIR}/ --repo-type ${REPO_TYPE} --arch ${ARCH}"
