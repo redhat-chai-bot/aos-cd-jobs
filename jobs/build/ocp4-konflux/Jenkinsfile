@@ -211,6 +211,8 @@ node {
             }
             if (params.SKIP_RHCOS_INTEGRATION_TESTS) {
                 cmd << "--skip-rhcos-integration-tests"
+            } else {
+                cmd << "--no-skip-rhcos-integration-tests"
             }
             if (params.NETWORK_MODE && params.NETWORK_MODE != "") {
                 cmd << "--skip-build-sync-konflux"
